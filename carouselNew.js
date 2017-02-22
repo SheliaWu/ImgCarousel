@@ -19,7 +19,10 @@
 
 	//初始化
 	Plugin.prototype.init=function(){
-		this.$imgBox.find('li').eq(this.options.currentIndex).css('display','block');
+		//this.$imgBox.find('li').eq(this.options.currentIndex).css('display','block');
+		if (this.options.autoPlay) {
+      		this.autoPlay();
+    	}
 		this.bindEvent();
 	}
 
@@ -41,17 +44,19 @@
 	//发生移动
 	Plugin.prototype.imgTranslate=function(){
 		var _this=this;
-		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeIn('slow');
+		
+		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeIn(_this.options.delayTime);
 		_this.$imgBox.find('li').eq(_this.options.currentIndex).css('display','block').siblings('li').css('display','none');
 		_this.$thumBox.find('li').eq(_this.options.currentIndex).addClass('current').siblings('li').removeClass('current');
 		if(_this.options.currentIndex>=(this.options.thumDisplayNums-1)&&_this.options.currentIndex<(_this.imgLength-1)){
-			var leftMove=(_this.options.currentIndex-3)*_this.thumbWidth;
-			_this.$thumBox.stop(true,false).animate({'left':-leftMove},500);
+			var _leftMove=(this.options.currentIndex-3)*_this.thumbWidth;
+			_this.$thumBox.stop(true,false).animate({'left':-_leftMove},_this.options.delayTime);
 		}else if(_this.options.currentIndex==(_this.imgLength-1)){
-			var leftMove=(_this.options.currentIndex-4)*_this.thumbWidth;
-			_this.$thumBox.stop(true,false).animate({'left':-leftMove},500);
+			//console.log(_this.options.currentIndex);
+			var _leftMove=(_this.options.currentIndex-4)*_this.thumbWidth;
+			_this.$thumBox.stop(true,false).animate({'left':-_leftMove},_this.options.delayTime);
 		}else{
-			_this.$thumBox.stop(true,false).animate({'left': 0},500);
+			_this.$thumBox.stop(true,false).animate({'left': 0},_this.options.delayTime);
 		}
 	}
 
@@ -59,47 +64,79 @@
 	//下一张事件
 	Plugin.prototype.nextEvent=function(){
 		var _this=this;
-		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut('slow');
+		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut(_this.options.delayTime);
 		_this.options.currentIndex++;
-		if(_this.options.currentIndex == this.imgLength){
+		if(_this.options.currentIndex == _this.imgLength){
 			_this.options.currentIndex=0;
 		}
-		this.imgTranslate();
-		
+		this.imgTranslate();		
 	}
 
 	//上一张事件
 	Plugin.prototype.prevEvent=function(){
 		var _this=this;
-		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut('slow');
+		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut(_this.options.delayTime);
 		if(_this.options.currentIndex==0){
-			_this.options.currentIndex=_this.imgLength;
+			_this.options.currentIndex=_this.imgLength-1;
+		}else{
+			_this.options.currentIndex--;
 		}
-		_this.options.currentIndex--;
 		this.imgTranslate();
 	}
 
 	//缩略图上一张事件
 	Plugin.prototype.thumPrevEvent=function(){
 		var _this=this;
-		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut('slow');
+		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut(_this.options.delayTime);
 		if(_this.options.currentIndex==0){
-			_this.currentIndex=_this.imgLength;
+			_this.options.currentIndex=_this.imgLength-1;
+		}else{
+			_this.options.currentIndex--;
 		}
-		_this.options.currentIndex--;
 		this.imgTranslate();
 	}
 
 	//缩略图下一张事件
 	Plugin.prototype.thumNextEvent=function(){
 		var _this=this;
-		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut('slow');
+		_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut(_this.options.delayTime);
 		_this.options.currentIndex++;
-		if(_this.options.currentIndex == this.imgLength){
+		if(_this.options.currentIndex == _this.imgLength){
 			_this.options.currentIndex=0;
 		}
 		this.imgTranslate();
 	}
+
+	//自动轮播
+	Plugin.prototype.autoPlay=function(){
+		var _this=this;
+
+		var _myInterval=setInterval(showTime,_this.options.intervalTime);
+		function showTime(){
+			_this.$imgBox.find('li').eq(_this.options.currentIndex).fadeOut(_this.options.delayTime);
+			_this.options.currentIndex++;
+			if(_this.options.currentIndex==_this.imgLength){
+				_this.options.currentIndex=0;
+			}
+			_this.imgTranslate();
+		};
+
+		_this.$imgBox.hover(function(){
+			clearInterval(_myInterval);
+
+		},function(){
+			_myInterval=setInterval(showTime,_this.options.intervalTime);
+		})
+
+		_this.$thumBox.find('li').click(function(){
+			_this.options.currentIndex=_this.$thumBox.find('li').index(this);
+			//console.log(_this.options.currentIndex);
+			_this.imgTranslate();
+
+		})
+	}
+
+	
 
 	//暴露方法
 	$.fn[pluginName]=function(options){
